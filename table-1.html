@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>공지사항 게시판 (표만들기)</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      h1 {
+        text-align: center;
+      }
+      .notice-board {
+        width: 80%;
+        max-width: 600px;
+        margin: 0 auto;
+        /* background-color: bisque; */
+        border-collapse: collapse; /* board 개별박스들을 합쳐줌 */
+      }
+      .notice-board th,
+      .notice-board td {
+        border: 1px solid #ddd;
+        padding: 10px;
+      }
+      .pagination {
+        display: flex;
+        list-style: none;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .pagination li {
+        cursor: pointer;
+        padding: 5px 10px;
+        border: 1px solid #333;
+      }
+      .pagination li.active {
+        background-color: #333;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>공지사항</h1>
+    <table class="notice-board">
+      <thead>
+        <!-- table head 제목 -->
+        <tr>
+          <!-- table row (가로줄) -->
+          <th>번호</th>
+          <th>제목</th>
+          <th>작성일</th>
+        </tr>
+      </thead>
+      <tbody id="noticeList">
+        <!-- js 출력 -->
+      </tbody>
+    </table>
+    <ul class="pagination" id="pagination">
+      <!-- js출력 -->
+    </ul>
+    <script>
+      let notice = [];
+      // console.log(notice);
+      const itemsPerPage = 8;
+      let currentPage = 1;
+      // json 데이터 가져오기
+      async function fetchNotice() {
+        try {
+          const response = await fetch("table-1.json");
+          console.log(response);
+          notice = await response.json();
+          console.log(notice);
+          displayNotice(); // 아래 함수가 여기서 실행
+          displayPagination(); // 아래 함수가 여기서 실행
+        } catch (error) {
+          console.error("데이터를 불러오는 중 오류 발생", error);
+        }
+      }
+      // 공지사항 내용 함수
+      function displayNotice() {
+        const noticeList = document.getElementById("noticeList");
+        noticeList.innerHTML = ``;
+        const start = (currentPage - 1) * itemsPerPage; // 0부터 시작하는 공식
+        console.log(start);
+        const pageNotices = notice.slice(start, start + itemsPerPage); // 인덱스 0 부터 4 까지 보여짐.
+        // slice 는 마지막 번호 해당 안됨. (start , start + itemsPerPage) 여기서 start + itemsPerPage 얘는 포함 안됨.
+        console.log(pageNotices);
+        pageNotices.forEach((item, index) => {
+          console.log(item);
+          console.log(index);
+          const row = document.createElement("tr");
+          console.log(row);
+          row.innerHTML = `
+                <td>${item.id}</td>
+                <td>${item.title}</td>
+                <td>${item.date}</td>
+                `;
+          noticeList.appendChild(row); // ← 이게 진짜 출력 코드
+        });
+      }
+      // 페이지네이션 함수
+      function displayPagination() {
+        const pagination = document.getElementById("pagination");
+        pagination.innerHTML = "";
+        // 페이지네이션 총 갯수
+        const totalPage = Math.ceil(notice.length / itemsPerPage);
+        // Math.ceil 나누기 한 값을 소수점 반올림하기
+        console.log(totalPage);
+        // 이전 버튼
+        const prev = document.createElement("li");
+        prev.textContent = "이전";
+        prev.addEventListener("click", () => {
+          if (currentPage > 1) {
+            currentPage--;
+            updateUI();
+          }
+        });
+        pagination.appendChild(prev);
+
+        // 페이지 총 갯수
+        for (let i = 1; i <= totalPage; i++) {
+          // json 파일 갯수와 위 totalPage 숫자에 따라서 i의 값은 달라짐. 당연함.
+          const li = document.createElement("li");
+          console.log(li);
+          console.log(i);
+
+          li.textContent = i;
+          //   active 되는 조건
+          if (i === currentPage) {
+            li.classList.add("active");
+          }
+          li.addEventListener("click", () => {
+            currentPage = i;
+            updateUI();
+          });
+          pagination.appendChild(li);
+          console.log(pagination);
+        }
+        // 다음 버튼
+        const next = document.createElement("li");
+        next.textContent = "다음";
+        next.addEventListener("click", () => {
+          if (currentPage < totalPage) {
+            currentPage++;
+            updateUI();
+          }
+        });
+        pagination.appendChild(next);
+      }
+
+      //   페이지네이션 업데이트 화면 (페이지네이션 클릭 먹힘)
+      function updateUI() {
+        displayNotice();
+        document.querySelectorAll(".pagination li").forEach((li, index) => {
+          console.log(li);
+          li.classList.toggle("active", index === currentPage);
+        });
+      }
+      fetchNotice();
+    </script>
+  </body>
+</html>
